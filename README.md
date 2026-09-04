@@ -25,7 +25,24 @@ tests/
   test_cli.py       # exercita o grupo e os comandos via CliRunner
 ```
 
-Ao renomear `cli_template`, atualize também o `[project.scripts]` do `pyproject.toml`.
+### Primeiro passo: renomear o pacote
+
+O repo é criado por cópia literal deste template (o Forge usa o `createUsingTemplate` do
+GitHub, que não substitui placeholder), então o pacote chega com o nome `cli_template`.
+Renomeie o diretório `src/cli_template/` para o nome do seu projeto e troque `cli_template`
+nestes **três** lugares:
+
+| Arquivo | Campo | Fica |
+|---|---|---|
+| `pyproject.toml` | `[project.scripts]` | `hello-cli = "<pacote>.cli:main"` |
+| `pyproject.toml` | `addopts`, em `[tool.pytest.ini_options]` | `--cov=<pacote>` |
+| `tests/test_cli.py` | o `import` no topo | `from <pacote>.cli import hello, main` |
+
+O nome do executável (`hello-cli`) também é placeholder — troque na chave de
+`[project.scripts]` se quiser outro.
+
+Confira com `uv run pytest`: precisa continuar verde. Se a cobertura aparecer zerada, o
+`--cov` ficou apontando para o nome antigo.
 
 ## Rodar localmente
 
