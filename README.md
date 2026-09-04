@@ -90,6 +90,43 @@ hello-cli hello --name Mundo
 O CI roda um smoke do console script justamente para garantir que o entrypoint
 declarado em `[project.scripts]` resolve depois de instalado.
 
+## CI
+
+`.github/workflows/ci.yml`, um job `quality`: `ruff check`, `ruff format --check`, `mypy`,
+`pytest` e o **smoke do console script** (`uv run hello-cli hello --name CI`) — este
+último é o que garante que o entrypoint de `[project.scripts]` resolve depois de
+instalado. Não há job de imagem: a CLI é distribuída como pacote (`forge.yaml`:
+`deploy: none`).
+
+### Runner: repo privado gerado a partir deste template precisa configurar
+
+Este template é **público**, e em repositório público o GitHub Actions em runner hospedado
+é gratuito. **O repo que você gera a partir dele é privado**, onde os minutos são cota paga
+— e a cota da organização está esgotada. Por isso o `runs-on` é parametrizado por variável
+de repositório, com default hospedado:
+
+```yaml
+runs-on: ${{ fromJSON(vars.CI_RUNNER || '"ubuntu-latest"') }}
+```
+
+Antes do primeiro push no repo novo, defina a variável (Settings → Secrets and variables →
+Actions → Variables), ou por CLI:
+
+```bash
+gh variable set CI_RUNNER --body '["self-hosted","desenrolai"]'
+```
+
+- O valor é **JSON**, não texto solto. `'["self-hosted","desenrolai"]'` vira dois labels;
+  a string `self-hosted,desenrolai` viraria **um** label só, que nenhum runner atende, e o
+  job ficaria em `queued` para sempre.
+- Sem a variável, tudo continua em `ubuntu-latest` — este template continua verde assim.
+- Não há `CI_RUNNER_DOCKER` aqui: sem Dockerfile, não há job de imagem.
+
+**Sintoma de não configurar:** o job morre em ~2 segundos com **`steps: 0`**, sem log de
+erro que oriente. Isso é assinatura de **billing** (cota de Actions esgotada/bloqueada),
+não de YAML quebrado. Não perca tempo procurando erro de sintaxe: confira a variável e o
+billing da organização.
+
 ## Dependências
 
 `uv.lock` é a fonte da verdade — commite-o. Para atualizar:
