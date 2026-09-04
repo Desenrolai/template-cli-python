@@ -20,7 +20,12 @@ env:
 jobs:
   quality:
     name: Lint / Format / Typecheck / Test
-    runs-on: ubuntu-latest
+    # Runner por variável de repositório. Sem `vars.CI_RUNNER` o default é o hosted
+    # `ubuntu-latest` — que é o que este template público usa. O valor precisa ser
+    # JSON: `'["self-hosted","desenrolai"]'` são DOIS labels; a string
+    # `self-hosted,desenrolai` seria UM label só, que nenhum runner atende.
+    # Repo privado gerado a partir daqui: ver README → CI.
+    runs-on: ${{ fromJSON(vars.CI_RUNNER || '"ubuntu-latest"') }}
     steps:
       - uses: actions/checkout@v7
 
